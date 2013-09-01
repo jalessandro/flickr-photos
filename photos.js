@@ -61,12 +61,40 @@ var setupPhotos = (function ($) {
         return img;
     }
 
+    function getFavorites () {
+        var favoriteList = localStorage.getItem('favorites');
+        if (!favoriteList) {
+            favoriteList = [];
+        } else {
+            favoriteList = JSON.parse(favoriteList);
+        }
+
+        return favoriteList;
+    }
+
     function imageAppender (id) {
         var holder = document.getElementById(id);
+        var iconClickHandler = function(event) {
+            var element = event.currentTarget;
+            var favoriteUrl = element.getAttribute('data-url');
+            var favoriteList = getFavorites();
+
+            favoriteList.push(favoriteUrl);
+            localStorage.setItem('favorites', JSON.stringify(favoriteList));
+            element.className = 'icon-heart icon-border';
+        };
+
         return function (img) {
             var elm = document.createElement('div');
             elm.className = 'photo';
+
+            var icon = document.createElement('i');
+            icon.setAttribute("data-url", img.src);
+            icon.className = 'icon-border' + ((favorites.indexOf(img.src) >= 0) ? ' icon-heart' : ' icon-heart-empty');
+            icon.addEventListener('click', iconClickHandler);
+
             elm.appendChild(img);
+            elm.appendChild(icon);
             holder.appendChild(elm);
         };
     }
@@ -74,6 +102,7 @@ var setupPhotos = (function ($) {
     // ----
     
     var max_per_tag = 5;
+    var favorites = getFavorites();
     return function setup (tags, callback) {
         loadAllPhotos(tags, max_per_tag, function (err, items) {
             if (err) { return callback(err); }
